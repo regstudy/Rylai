@@ -32,11 +32,7 @@ targets:
       - path: Rylai
         excludes:
           - "Resources/Info.plist"
-          - "Resources/Assets.xcassets"
           - "Resources/Rylai.entitlements"
-
-    resources:
-      - path: Rylai/Resources/Assets.xcassets
 
     settings:
       base:
