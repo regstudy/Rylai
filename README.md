@@ -1,4 +1,4 @@
-# Rylai ❄️
+# Rylai ❄️ (Auto Wallpaper for macOS)
 
 [中文文档](README_ZH.md)
 

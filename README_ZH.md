@@ -1,4 +1,4 @@
-# Rylai ❄️
+# Rylai ❄️ (macOS 自动换壁纸)
 
 [English](README.md)
 
