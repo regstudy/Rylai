@@ -811,7 +811,7 @@ struct InlineSettingsView: View {
                                 VStack(spacing: 4) {
                                     Text("Rylai v1.0.2")
                                         .font(.system(size: 11, weight: .medium))
-                                    Text("Crystal Maiden's Wallpaper")
+                                    Text("macOS Wallpaper App")
                                         .font(.system(size: 10))
                                         .foregroundStyle(.tertiary)
                                 }

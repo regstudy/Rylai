@@ -1,8 +1,8 @@
 # Rylai ❄️
 
-> 冰晶室女的壁纸 — 基于 Unsplash 的 macOS 自动换壁纸应用，采用 Liquid Glass 设计语言。
->
-> 以 Dota 2 中的冰晶室女 Rylai 命名。
+[English](README.md)
+
+> 基于 Unsplash 的 macOS 自动换壁纸应用，采用 Liquid Glass 设计语言。
 
 ## 功能特性
 

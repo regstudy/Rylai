@@ -7,7 +7,7 @@ set -e
 echo ""
 echo "╔══════════════════════════════╗"
 echo "║       Rylai ❄️               ║"
-echo "║  Crystal Maiden's Wallpaper  ║"
+echo "║  macOS Wallpaper App         ║"
 echo "╚══════════════════════════════╝"
 echo ""
 

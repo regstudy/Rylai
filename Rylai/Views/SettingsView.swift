@@ -323,7 +323,7 @@ struct SettingsView: View {
                     Text("Rylai")
                         .font(.system(size: 22, weight: .bold))
 
-                    Text("Crystal Maiden's Wallpaper")
+                    Text("macOS Wallpaper App")
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)
 
