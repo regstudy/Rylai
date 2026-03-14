@@ -11,7 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        macos-version: [macos-12, macos-14, macos-15]
+        macos-version: [macos-15]
       fail-fast: false
 
     runs-on: ${{ matrix.macos-version }}
@@ -23,8 +23,11 @@ jobs:
     - name: Show Xcode version
       run: xcodebuild -version
 
-    - name: Show available Xcode versions
-      run: ls /Applications/ | grep Xcode
+    - name: Select Xcode 16.2
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+    - name: Show selected Xcode version
+      run: xcodebuild -version
 
     - name: Install XcodeGen
       run: brew install xcodegen
@@ -47,7 +50,7 @@ jobs:
                    CODE_SIGNING_REQUIRED=NO \
                    CODE_SIGNING_ALLOWED=NO \
                    MACOSX_DEPLOYMENT_TARGET=12.0 \
-                   -verbose
+                   -quiet
 
     - name: Check build output
       if: always()

@@ -8,15 +8,15 @@ options:
   generateEmptyDirectories: true
   indentWidth: 4
   tabWidth: 4
+  minimumXcodeGenVersion: 2.35.0
 
 settings:
   base:
-    SWIFT_VERSION: "5.5"
+    SWIFT_VERSION: "5.9"
     MACOSX_DEPLOYMENT_TARGET: "12.0"
     ENABLE_HARDENED_RUNTIME: YES
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: ""
-    SWIFT_STRICT_CONCURRENCY: minimal
 
 configs:
   Debug: debug
