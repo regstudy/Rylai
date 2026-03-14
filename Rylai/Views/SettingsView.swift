@@ -60,7 +60,7 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Rylai Settings")
-        .toolbar {
+        .toolbar(content: {
             ToolbarItem(placement: .cancellationAction) {
                 Button {
                     dismiss()
@@ -73,7 +73,7 @@ struct SettingsView: View {
                 .pointerCursor()
                 .help("Close Settings")
             }
-        }
+        })
         .frame(minWidth: 560, minHeight: 400)
         .onAppear {
             cacheSizeText = cacheManager.cacheSizeString
@@ -89,7 +89,7 @@ struct SettingsView: View {
             GlassCard {
                 VStack(spacing: 0) {
                     LiquidToggle(label: "Enable Auto Change", icon: "arrow.triangle.2.circlepath", isOn: $settings.isAutoChangeEnabled)
-                        .onChange(of: settings.isAutoChangeEnabled) { _, _ in
+                        .onChange(of: settings.isAutoChangeEnabled) { _ in
                             scheduler.restartWithNewSettings()
                         }
                         .padding(.vertical, 8)
@@ -106,7 +106,7 @@ struct SettingsView: View {
                         }
                         .frame(width: 120)
                         .pointerCursor()
-                        .onChange(of: settings.changeInterval) { _, _ in
+                        .onChange(of: settings.changeInterval) { _ in
                             scheduler.restartWithNewSettings()
                         }
                     }
@@ -317,8 +317,8 @@ struct SettingsView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "snowflake")
                         .font(.system(size: 52))
-                        .foregroundStyle(.cyan.gradient)
-                        .symbolEffect(.pulse)
+                        .foregroundStyle(.cyan)
+                        // .symbolEffect(.pulse)  // macOS 14+ only, removed for compatibility
 
                     Text("Rylai")
                         .font(.system(size: 22, weight: .bold))
@@ -395,13 +395,10 @@ struct LaunchAtLoginRow: View {
 
     var body: some View {
         LiquidToggle(label: "Launch at Login", icon: "power", isOn: $launchManager.isEnabled)
-            .onChange(of: launchManager.isEnabled) { _, newValue in
-                // LiquidToggle already toggled the state, just call register/unregister
-                if newValue {
-                    try? SMAppService.mainApp.register()
-                } else {
-                    try? SMAppService.mainApp.unregister()
-                }
+            .onChange(of: launchManager.isEnabled) { _ in
+                // Refresh state to ensure sync with system
+                launchManager.refresh()
+            }
             }
             .padding(.vertical, 8)
     }

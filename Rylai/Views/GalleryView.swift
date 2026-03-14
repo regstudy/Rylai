@@ -192,20 +192,19 @@ struct PhotoDetailView: View {
                                 .font(.system(size: 12))
                                 .foregroundStyle(.secondary)
                         }
-                        
+
                         Spacer()
-                        
+
                         HStack(spacing: 10) {
                             // Favorite
                             Button {
                                 settings.toggleFavorite(photo)
                             } label: {
                                 Image(systemName: settings.isFavorited(photo) ? "heart.fill" : "heart")
-                                    .symbolEffect(.bounce, value: settings.isFavorited(photo))
                             }
                             .foregroundStyle(settings.isFavorited(photo) ? .red : .primary)
                             .pointerCursor()
-                            
+
                             // View on Unsplash
                             Link(destination: URL(string: photo.links.html)!) {
                                 Label("Unsplash", systemImage: "arrow.up.right.square")

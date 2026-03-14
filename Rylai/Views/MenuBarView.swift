@@ -580,7 +580,7 @@ struct InlineSettingsView: View {
                             GlassCard {
                                 VStack(spacing: 0) {
                                     LiquidToggle(label: "Enable Auto Change", icon: "arrow.triangle.2.circlepath", isOn: $settings.isAutoChangeEnabled)
-                                        .onChange(of: settings.isAutoChangeEnabled) { _, _ in
+                                        .onChange(of: settings.isAutoChangeEnabled) { _ in
                                             scheduler.restartWithNewSettings()
                                         }
                                         .padding(.vertical, 8)
@@ -598,7 +598,7 @@ struct InlineSettingsView: View {
                                         }
                                         .frame(width: 100)
                                         .pointerCursor()
-                                        .onChange(of: settings.changeInterval) { _, _ in
+                                        .onChange(of: settings.changeInterval) { _ in
                                             scheduler.restartWithNewSettings()
                                         }
                                     }
@@ -656,7 +656,7 @@ struct InlineSettingsView: View {
                                         TextField("Leave empty for built-in Key", text: $settings.customAPIKey)
                                             .textFieldStyle(.roundedBorder)
                                             .font(.system(size: 11, design: .monospaced))
-                                            .onChange(of: settings.customAPIKey) { _, _ in
+                                            .onChange(of: settings.customAPIKey) { _ in
                                                 keyVerifyState = .idle
                                             }
                                         GhostTextButton(title: "Verify", icon: "checkmark.shield") {
@@ -976,7 +976,7 @@ struct CategoryEditorPage: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
             }
-            .contentMargins(.top, 0, for: .scrollContent)  // Remove ScrollView top default margin
+            // contentMargins(.top, 0, for: .scrollContent)  // macOS 14+ API, removing for compatibility
 
             GlassDivider()
                 .padding(.horizontal, 20)
