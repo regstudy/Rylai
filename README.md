@@ -35,7 +35,7 @@
 
 ### Option B: Build from Source
 
-Requires macOS 14.0+, Xcode 16+, Swift 5.9+
+Requires macOS 12.0+, Xcode 13+, Swift 5.5+
 
 ```bash
 git clone <repo-url> && cd Rylai
@@ -61,8 +61,8 @@ A built-in API Key is included for quick testing, but it's **shared by all users
 
 | | Version | Notes |
 |:---|:---|:---|
-| **macOS** | 14.0+ (recommended **macOS 26**) | macOS 26 enables native Liquid Glass effects; on macOS 14–15 the app falls back to standard `NSVisualEffectView` frosted glass — all features still work, only the visual style differs |
-| **Xcode** | 16+ | Only if building from source |
+| **macOS** | 12.0+ (recommended **macOS 13+**) | macOS 13+ uses modern SMAppService for launch-at-login; macOS 12 uses legacy API — all features still work |
+| **Xcode** | 13+ | Only if building from source |
 | **Unsplash API** | Free Access Key | https://unsplash.com/developers |
 
 ## Project Structure
@@ -81,7 +81,7 @@ Rylai/
 │   ├── WallpaperManager.swift         # NSWorkspace wallpaper setter
 │   ├── WallpaperScheduler.swift       # Timer-based scheduler
 │   ├── ImageCacheManager.swift        # Download cache + favorites storage
-│   └── LaunchAtLoginManager.swift     # SMAppService wrapper
+│   └── LaunchAtLoginManager.swift     # SMAppService (macOS 13+) / SMLoginItemSetEnabled (macOS 12)
 ├── Views/
 │   ├── MenuBarView.swift              # Main popover UI + inline settings
 │   ├── SettingsView.swift             # Settings window (NavigationSplitView)

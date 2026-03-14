@@ -35,7 +35,7 @@
 
 ### 方式二：从源码编译
 
-需要 macOS 14.0+、Xcode 16+、Swift 5.9+
+需要 macOS 12.0+、Xcode 13+、Swift 5.5+
 
 ```bash
 git clone <repo-url> && cd Rylai
@@ -61,8 +61,8 @@ open Rylai.xcodeproj     # Build & Run
 
 | | 版本 | 说明 |
 |:---|:---|:---|
-| **macOS** | 14.0+（推荐 **macOS 26**） | macOS 26 可启用原生 Liquid Glass 液态玻璃效果；macOS 14–15 会降级为系统标准 `NSVisualEffectView` 磨砂玻璃——所有功能正常使用，仅视觉风格有差异 |
-| **Xcode** | 16+ | 仅源码编译需要 |
+| **macOS** | 12.0+（推荐 **macOS 13+**） | macOS 13+ 使用现代 SMAppService 实现开机自启动；macOS 12 使用旧版 API —— 所有功能正常使用 |
+| **Xcode** | 13+ | 仅源码编译需要 |
 | **Unsplash API** | 免费 Access Key | https://unsplash.com/developers |
 
 ## 项目结构
@@ -81,7 +81,7 @@ Rylai/
 │   ├── WallpaperManager.swift         # NSWorkspace 壁纸设置器
 │   ├── WallpaperScheduler.swift       # 定时器调度器
 │   ├── ImageCacheManager.swift        # 下载缓存 + 收藏存储
-│   └── LaunchAtLoginManager.swift     # SMAppService 封装
+│   └── LaunchAtLoginManager.swift     # SMAppService (macOS 13+) / SMLoginItemSetEnabled (macOS 12)
 ├── Views/
 │   ├── MenuBarView.swift              # 主弹窗 UI + 内联设置
 │   ├── SettingsView.swift             # 设置窗口（NavigationSplitView）

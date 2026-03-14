@@ -1,0 +1,54 @@
+name: Build Rylai
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install XcodeGen
+      run: |
+        brew install xcodegen
+
+    - name: Generate Xcode project
+      run: |
+        xcodegen generate --spec project.yml
+
+    - name: Build Rylai
+      run: |
+        xcodebuild -project Rylai.xcodeproj \
+                   -scheme Rylai \
+                   -configuration Release \
+                   -destination 'platform=macOS' \
+                   CODE_SIGN_IDENTITY="" \
+                   CODE_SIGNING_REQUIRED=NO \
+                   CODE_SIGNING_ALLOWED=NO
+
+    - name: Create app bundle
+      run: |
+        mkdir -p artifacts
+        if [ -d "build/Release/Rylai.app" ]; then
+          cp -R build/Release/Rylai.app artifacts/
+        elif [ -d "build/Release/Rylai.app/Contents/MacOS" ]; then
+          cp -R build/Release/Rylai.app artifacts/
+        else
+          echo "Searching for Rylai.app..."
+          find build -name "Rylai.app" -type d
+        fi
+
+    - name: Upload build artifacts
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Rylai-macOS
+        path: artifacts/Rylai.app
+        retention-days: 30
