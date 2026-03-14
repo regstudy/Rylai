@@ -15,13 +15,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Show available Xcode versions
+      run: ls /Applications/ | grep Xcode
+
     - name: Install XcodeGen
-      run: |
-        brew install xcodegen
+      run: brew install xcodegen
 
     - name: Generate Xcode project
       run: |
         xcodegen generate --spec project.yml
+        ls -la
+
+    - name: List available schemes
+      run: xcodebuild -list -project Rylai.xcodeproj
 
     - name: Build Rylai
       run: |
@@ -31,7 +40,9 @@ jobs:
                    -destination 'platform=macOS' \
                    CODE_SIGN_IDENTITY="" \
                    CODE_SIGNING_REQUIRED=NO \
-                   CODE_SIGNING_ALLOWED=NO
+                   CODE_SIGNING_ALLOWED=NO \
+                   MACOSX_DEPLOYMENT_TARGET=12.0 \
+                   -verbose
 
     - name: Create app bundle
       run: |
@@ -42,7 +53,18 @@ jobs:
           cp -R build/Release/Rylai.app artifacts/
         else
           echo "Searching for Rylai.app..."
-          find build -name "Rylai.app" -type d
+          find build -name "Rylai.app" -type d -exec cp -R {} artifacts/ \;
+        fi
+
+    - name: Verify app bundle
+      run: |
+        if [ -d "artifacts/Rylai.app" ]; then
+          echo "App bundle created successfully"
+          ls -la artifacts/Rylai.app/
+          ls -la artifacts/Rylai.app/Contents/MacOS/
+        else
+          echo "ERROR: App bundle not found"
+          exit 1
         fi
 
     - name: Upload build artifacts

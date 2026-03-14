@@ -11,7 +11,8 @@ jobs:
   build:
     strategy:
       matrix:
-        macos-version: [macos-12, macos-13, macos-14]
+        macos-version: [macos-12, macos-14, macos-15]
+      fail-fast: false
 
     runs-on: ${{ matrix.macos-version }}
 
@@ -19,11 +20,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Show available Xcode versions
+      run: ls /Applications/ | grep Xcode
+
     - name: Install XcodeGen
       run: brew install xcodegen
 
     - name: Generate Xcode project
-      run: xcodegen generate --spec project.yml
+      run: |
+        xcodegen generate --spec project.yml
+        ls -la
+
+    - name: List available schemes
+      run: xcodebuild -list -project Rylai.xcodeproj
 
     - name: Build Rylai (macOS ${{ matrix.macos-version }})
       run: |
@@ -34,4 +46,11 @@ jobs:
                    CODE_SIGN_IDENTITY="" \
                    CODE_SIGNING_REQUIRED=NO \
                    CODE_SIGNING_ALLOWED=NO \
-                   MACOSX_DEPLOYMENT_TARGET=12.0
+                   MACOSX_DEPLOYMENT_TARGET=12.0 \
+                   -verbose
+
+    - name: Check build output
+      if: always()
+      run: |
+        echo "Build directory contents:"
+        find build -type f -name "*.app" 2>/dev/null || echo "No .app found"
