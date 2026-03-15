@@ -24,22 +24,38 @@ struct LiquidGlassFallback: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = .contentBackground  // Control Center style
-        view.blendingMode = .behindWindow    // Capture behind content
+        view.material = .sidebar
+        view.blendingMode = .withinWindow
         view.state = .active
         view.wantsLayer = true
         view.alphaValue = intensity
-
-        // Create rounded corner mask
-        let maskLayer = CAShapeLayer()
-        maskLayer.path = CGPath(roundedRect: CGRect(origin: .zero, size: CGSize(width: 100, height: 100), cornerWidth: cornerRadius, cornerHeight: cornerRadius), transform: nil)
-        view.layer?.mask = maskLayer
+        view.layer?.masksToBounds = true
 
         return view
     }
 
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
         nsView.alphaValue = intensity
+        nsView.layer?.cornerRadius = cornerRadius
+    }
+}
+
+// MARK: - Blurred Wallpaper Background
+
+struct BlurredWallpaperBackground: View {
+    var blurRadius: CGFloat = 50
+    var opacity: Double = 0.4
+
+    var body: some View {
+        ZStack {
+            LiquidGlassFallback(intensity: 0.72, cornerRadius: 0)
+
+            // Additional blur overlay
+            Rectangle()
+                .fill(Color.black.opacity(opacity * 0.3))
+                .blur(radius: blurRadius * 0.1)
+        }
+        .ignoresSafeArea()
     }
 }
 
@@ -103,32 +119,47 @@ extension View {
 
 struct LiquidButton: View {
     var title: String
-    var icon: String?
-    var isSelected: Bool
-    var color: Color
+    var icon: String? = nil
+    var emoji: String? = nil
+    var isActive: Bool = false
+    var isSelected: Bool = false
+    var color: Color = .cyan
+    var accentColor: Color? = nil
     var action: () -> Void
     @State private var isHovered = false
     @State private var isPressed = false
 
+    private var effectiveColor: Color {
+        accentColor ?? color
+    }
+
+    private var effectiveSelected: Bool {
+        isActive || isSelected
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                if let icon = icon {
+                if let emoji = emoji {
+                    Text(emoji)
+                        .font(.system(size: 12))
+                } else if let icon = icon {
                     Image(systemName: icon)
+                        .font(.system(size: 12))
                 }
                 Text(title)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .font(.system(size: 13, weight: effectiveSelected ? .semibold : .regular))
             }
-            .foregroundStyle(isSelected ? .white : color)
+            .foregroundStyle(effectiveSelected ? .white : effectiveColor)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isSelected ? color : color.opacity(0.1))
+                    .fill(effectiveSelected ? effectiveColor : effectiveColor.opacity(0.1))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(color.opacity(isSelected ? 0 : 0.2), lineWidth: 1)
+                    .stroke(effectiveColor.opacity(effectiveSelected ? 0 : 0.2), lineWidth: 1)
             )
             .scaleEffect(isPressed ? 0.96 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: isHovered)
@@ -147,12 +178,25 @@ struct LiquidButton: View {
         }
         .pointerCursor()
     }
+
+    // Convenience initializer for isActive parameter before action
+    init(title: String, icon: String? = nil, emoji: String? = nil, isActive: Bool = false, color: Color = .cyan, accentColor: Color? = nil, action: @escaping () -> Void) {
+        self.title = title
+        self.icon = icon
+        self.emoji = emoji
+        self.isActive = isActive
+        self.isSelected = false
+        self.color = color
+        self.accentColor = accentColor
+        self.action = action
+    }
 }
 
 // MARK: - Ghost Icon Button
 
 struct GhostIconButton: View {
     var icon: String
+    var size: CGFloat = 16
     var color: Color = .primary
     var action: () -> Void
     @State private var isHovered = false
@@ -160,7 +204,7 @@ struct GhostIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 16))
+                .font(.system(size: size))
                 .foregroundStyle(color)
                 .frame(width: 32, height: 32)
                 .background(
@@ -184,8 +228,9 @@ struct GhostIconButton: View {
 
 struct GhostTextButton: View {
     var text: String
-    var icon: String?
+    var icon: String? = nil
     var color: Color = .primary
+    var fontSize: CGFloat = 13
     var action: () -> Void
     @State private var isHovered = false
 
@@ -194,10 +239,12 @@ struct GhostTextButton: View {
             HStack(spacing: 6) {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .font(.system(size: 13))
+                        .font(.system(size: fontSize))
                 }
                 Text(text)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: fontSize, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
             .foregroundStyle(color)
             .padding(.horizontal, 12)
@@ -279,27 +326,5 @@ struct GlassDivider: View {
                 )
             )
             .frame(height: 1)
-    }
-}
-
-// MARK: - Section Header
-
-struct SectionHeader: View {
-    var title: String
-    var icon: String
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-            Text(title)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .tracking(0.5)
-        }
-        .padding(.leading, 4)
-        .padding(.bottom, 6)
     }
 }

@@ -74,7 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         // Create NSVisualEffectView as popover background
         let effectView = NSVisualEffectView()
         effectView.material = .popover
-        effectView.blendingMode = .behindWindow
+        effectView.blendingMode = .withinWindow
         effectView.state = .active
         effectView.isEmphasized = true
 

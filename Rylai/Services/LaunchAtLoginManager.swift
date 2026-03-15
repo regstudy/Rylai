@@ -5,8 +5,13 @@ import Foundation
 import ServiceManagement
 
 class LaunchAtLoginManager: ObservableObject {
+    private enum LegacyState {
+        static let defaultsKey = "legacyLaunchAtLoginEnabled"
+    }
 
     @Published var isEnabled: Bool = false
+    @Published private(set) var isSupported: Bool = true
+    @Published private(set) var statusMessage: String?
 
     // macOS 13+ SMAppService
     @available(macOS 13.0, *)
@@ -14,9 +19,8 @@ class LaunchAtLoginManager: ObservableObject {
         return SMAppService.mainApp
     }
 
-    // Legacy API bundle identifier for helper app
-    // Note: For SMLoginItemSetEnabled, we need a helper app bundle.
-    // This is a simplified implementation that falls back gracefully.
+    // Legacy API requires an embedded login item helper app.
+    private let legacyHelperAppName = "RylaiLoginItem"
     private let legacyHelperBundleID = "com.rylai.app.LoginItem"
 
     init() {
@@ -25,14 +29,21 @@ class LaunchAtLoginManager: ObservableObject {
 
     func refresh() {
         if #available(macOS 13.0, *) {
+            isSupported = true
+            statusMessage = nil
             isEnabled = modernService.status == .enabled
         } else {
-            // For macOS 12, check if legacy helper is registered
-            isEnabled = SMLoginItemSetEnabled(legacyHelperBundleID as CFString, false)
+            isSupported = hasLegacyHelperApp
+            isEnabled = hasLegacyHelperApp && UserDefaults.standard.bool(forKey: LegacyState.defaultsKey)
+            statusMessage = hasLegacyHelperApp
+                ? nil
+                : "This build does not bundle a macOS 12 login item helper."
         }
     }
 
     func toggle() {
+        guard isSupported else { return }
+
         if #available(macOS 13.0, *) {
             toggleModern()
         } else {
@@ -55,14 +66,22 @@ class LaunchAtLoginManager: ObservableObject {
     }
 
     private func toggleLegacy() {
-        // Toggle the legacy helper app registration
         let shouldEnable = !isEnabled
         let success = SMLoginItemSetEnabled(legacyHelperBundleID as CFString, shouldEnable)
 
         if success {
             isEnabled.toggle()
+            UserDefaults.standard.set(isEnabled, forKey: LegacyState.defaultsKey)
+            statusMessage = nil
         } else {
+            statusMessage = "Failed to update the macOS 12 login item."
             print("LaunchAtLogin (Legacy) error: Failed to set login item status")
         }
+    }
+
+    private var hasLegacyHelperApp: Bool {
+        let helperURL = Bundle.main.bundleURL
+            .appendingPathComponent("Contents/Library/LoginItems/\(legacyHelperAppName).app")
+        return FileManager.default.fileExists(atPath: helperURL.path)
     }
 }

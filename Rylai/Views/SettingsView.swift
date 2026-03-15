@@ -33,17 +33,36 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
-            List(SettingsSection.allCases, id: \.self, selection: $selectedSection) { section in
-                Label(section.rawValue, systemImage: section.icon)
+        HStack(spacing: 0) {
+            // Sidebar
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(SettingsSection.allCases, id: \.self) { section in
+                    Button {
+                        selectedSection = section
+                    } label: {
+                        Label(section.rawValue, systemImage: section.icon)
+                            .font(.system(size: 13))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(selectedSection == section ? Color.accentColor.opacity(0.15) : Color.clear)
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(selectedSection == section ? .primary : .secondary)
+                }
+                Spacer()
             }
-            .navigationSplitViewColumnWidth(160)
-            .listStyle(.sidebar)
-        } detail: {
+            .frame(width: 160)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 8)
+            .background(Color(nsColor: .controlBackgroundColor))
+
+            Divider()
+
+            // Detail
             ZStack {
-                // Background layer (non-interactive)
-                Rectangle()
-                    .fill(.ultraThinMaterial)
+                LiquidGlassBackground(intensity: 0.72, cornerRadius: 0)
                     .allowsHitTesting(false)
 
                 ScrollView {
@@ -60,7 +79,7 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Rylai Settings")
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button {
                     dismiss()
@@ -73,7 +92,7 @@ struct SettingsView: View {
                 .pointerCursor()
                 .help("Close Settings")
             }
-        })
+        }
         .frame(minWidth: 560, minHeight: 400)
         .onAppear {
             cacheSizeText = cacheManager.cacheSizeString
@@ -114,9 +133,7 @@ struct SettingsView: View {
 
                     GlassDivider()
 
-                    if #available(macOS 13.0, *) {
-                        LaunchAtLoginRow()
-                    }
+                    LaunchAtLoginRow()
                 }
             }
 
@@ -242,11 +259,11 @@ struct SettingsView: View {
 
                     HStack {
                         Spacer()
-                        GhostTextButton(title: "Choose...", icon: "folder.badge.plus") {
+                        GhostTextButton(text: "Choose...", icon: "folder.badge.plus") {
                             chooseSaveDirectory()
                         }
 
-                        GhostTextButton(title: "Reset Default", icon: "arrow.counterclockwise") {
+                        GhostTextButton(text: "Reset Default", icon: "arrow.counterclockwise") {
                             settings.saveDirectory = WallpaperSettings.defaultSaveDirectory
                         }
                     }
@@ -257,7 +274,7 @@ struct SettingsView: View {
                     HStack {
                         Label("Open in Finder", systemImage: "arrow.right.circle")
                         Spacer()
-                        GhostTextButton(title: "Open", icon: "folder") {
+                        GhostTextButton(text: "Open", icon: "folder") {
                             let url = URL(fileURLWithPath: settings.saveDirectory)
                             NSWorkspace.shared.open(url)
                         }
@@ -292,7 +309,7 @@ struct SettingsView: View {
 
                     HStack {
                         Spacer()
-                        GhostTextButton(title: "Clear Cache", icon: "trash", color: .red) {
+                        GhostTextButton(text: "Clear Cache", icon: "trash", color: .red) {
                             showClearCacheAlert = true
                         }
                     }
@@ -300,11 +317,11 @@ struct SettingsView: View {
                 }
             }
             .alert("Clear cache?", isPresented: $showClearCacheAlert) {
-                Button("Clear", role: .destructive) {
+                Button("Clear") {
                     cacheManager.clearAll()
                     cacheSizeText = cacheManager.cacheSizeString
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Cancel") {}
             }
         }
     }
@@ -343,16 +360,29 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
 
-                    Link(destination: URL(string: "https://github.com/JaffryGao")!) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "link")
-                                .font(.system(size: 10))
-                            Text("github.com/JaffryGao")
-                                .font(.system(size: 11))
+                    VStack(spacing: 6) {
+                        Link(destination: URL(string: "https://github.com/JaffryGao")!) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "link")
+                                    .font(.system(size: 10))
+                                Text("Original: github.com/JaffryGao")
+                                    .font(.system(size: 11))
+                            }
+                            .foregroundStyle(.secondary.opacity(0.7))
                         }
-                        .foregroundStyle(.secondary.opacity(0.7))
+                        .pointerCursor()
+
+                        Link(destination: URL(string: "https://github.com/regstudy/Rylai")!) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "link")
+                                    .font(.system(size: 10))
+                                Text("Fork: github.com/regstudy/Rylai")
+                                    .font(.system(size: 11))
+                            }
+                            .foregroundStyle(.secondary.opacity(0.7))
+                        }
+                        .pointerCursor()
                     }
-                    .pointerCursor()
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -389,18 +419,33 @@ struct SectionHeader: View {
     }
 }
 
-@available(macOS 13.0, *)
 struct LaunchAtLoginRow: View {
     @StateObject private var launchManager = LaunchAtLoginManager()
 
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { launchManager.isEnabled },
+            set: { _ in
+                launchManager.toggle()
+            }
+        )
+    }
+
     var body: some View {
-        LiquidToggle(label: "Launch at Login", icon: "power", isOn: $launchManager.isEnabled)
-            .onChange(of: launchManager.isEnabled) { _ in
-                // Refresh state to ensure sync with system
-                launchManager.refresh()
+        VStack(alignment: .leading, spacing: 6) {
+            LiquidToggle(label: "Launch at Login", icon: "power", isOn: launchAtLoginBinding)
+                .disabled(!launchManager.isSupported)
+
+            if let statusMessage = launchManager.statusMessage {
+                Text(statusMessage)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
             }
-            }
-            .padding(.vertical, 8)
+        }
+        .padding(.vertical, 8)
+        .onAppear {
+            launchManager.refresh()
+        }
     }
 }
 

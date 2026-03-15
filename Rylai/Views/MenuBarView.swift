@@ -119,10 +119,7 @@ struct MenuBarView: View {
             .opacity(scheduler.isChangingNow ? 0.5 : 1)
 
             // Pause/Play button — filled icon
-            GhostIconButton(
-                icon: scheduler.isRunning ? "pause.circle.fill" : "play.circle.fill",
-                size: 20
-            ) {
+            GhostIconButton(icon: scheduler.isRunning ? "pause.circle.fill" : "play.circle.fill", size: 20) {
                 scheduler.toggle()
             }
             .help(scheduler.isRunning ? "Pause Auto Change" : "Resume Auto Change")
@@ -251,9 +248,9 @@ struct MenuBarView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 // Edit ghost button to open editor
-                GhostTextButton(title: "Edit", icon: "pencil") {
+                GhostTextButton(text: "Edit", icon: "pencil", action: {
                     showCategoryEditor = true
-                }
+                })
             }
 
             LazyVGrid(
@@ -261,17 +258,14 @@ struct MenuBarView: View {
                 spacing: 6
             ) {
                 ForEach(settings.displayedCategories) { cat in
-                    LiquidButton(
-                        title: cat.displayName,
-                        emoji: cat.emoji,
-                        action: {
-                            settings.category = cat
-                            unsplashService.clearPool()
-                            scheduler.changeNow()
-                        },
-                        isActive: settings.category == cat,
-                        accentColor: cat.accentColor
-                    )
+                    HomeCategoryChip(
+                        category: cat,
+                        isSelected: settings.category == cat
+                    ) {
+                        settings.category = cat
+                        unsplashService.clearPool()
+                        scheduler.changeNow()
+                    }
                 }
             }
         }
@@ -343,11 +337,11 @@ struct MenuBarView: View {
 
                     Spacer()
 
-                    GhostTextButton(title: "Set Up", icon: "key", color: .orange) {
+                    GhostTextButton(text: "Set Up", icon: "key", color: Color.orange, action: {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showSettings = true
                         }
-                    }
+                    })
                 }
                 .padding(10)
                 .background {
@@ -541,7 +535,7 @@ struct InlineSettingsView: View {
     @State private var keyVerifyState: KeyVerifyState = .idle
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
             if showCategoryEditor {
                 // Category editor sub-page
                 CategoryEditorPage(
@@ -606,9 +600,7 @@ struct InlineSettingsView: View {
 
                                     GlassDivider()
 
-                                    if #available(macOS 13.0, *) {
-                                        LaunchAtLoginRow()
-                                    }
+                                    LaunchAtLoginRow()
                                 }
                             }
 
@@ -659,9 +651,9 @@ struct InlineSettingsView: View {
                                             .onChange(of: settings.customAPIKey) { _ in
                                                 keyVerifyState = .idle
                                             }
-                                        GhostTextButton(title: "Verify", icon: "checkmark.shield") {
+                                        GhostTextButton(text: "Verify", icon: "checkmark.shield", action: {
                                             verifyAPIKey()
-                                        }
+                                        })
                                     }
 
                                     // API Key setup guide (hidden when custom key is set)
@@ -682,11 +674,11 @@ struct InlineSettingsView: View {
                                             .foregroundStyle(.tertiary)
 
                                             HStack(spacing: 8) {
-                                                GhostTextButton(title: "Get Access Key", icon: "arrow.up.right", color: .blue) {
+                                                GhostTextButton(text: "Get Access Key", icon: "arrow.up.right", color: Color.blue, action: {
                                                     if let url = URL(string: "https://unsplash.com/oauth/applications/new") {
                                                         NSWorkspace.shared.open(url)
                                                     }
-                                                }
+                                                })
                                                 Text("Free · 50 req/hr per key")
                                                     .font(.system(size: 10))
                                                     .foregroundStyle(.tertiary)
@@ -735,101 +727,23 @@ struct InlineSettingsView: View {
                                                 .foregroundStyle(.secondary)
                                         }
                                         Spacer()
-                                        GhostTextButton(title: "Edit", icon: "pencil") {
+                                        GhostTextButton(text: "Edit", icon: "pencil", action: {
                                             showCategoryEditor = true
-                                        }
+                                        })
                                     }
                                     .padding(.vertical, 8)
                                 }
                             }
 
-                            // Storage
-                            SectionHeader(title: "Storage", icon: "folder")
-
-                            GlassCard {
-                                VStack(spacing: 0) {
-                                    // Cache directory
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Cache Dir")
-                                                .font(.system(size: 11))
-                                            Text("Max 50 images")
-                                                .font(.system(size: 10))
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        Spacer()
-                                        GhostTextButton(title: "Open", icon: "folder") {
-                                            NSWorkspace.shared.open(cacheManager.cacheDirectory)
-                                        }
-                                        .frame(width: 72)
-                                    }
-                                    .padding(.vertical, 6)
-
-                                    GlassDivider()
-
-                                    // Favorites directory
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Favorites Dir")
-                                                .font(.system(size: 11))
-                                        }
-                                        Spacer()
-                                        GhostTextButton(title: "Open", icon: "folder") {
-                                            NSWorkspace.shared.open(cacheManager.favoritesDirectory)
-                                        }
-                                        .frame(width: 72)
-                                    }
-                                    .padding(.vertical, 6)
-
-                                    GlassDivider()
-
-                                    // Clear cache
-                                    HStack {
-                                        Text("Cache \(cacheSizeText)")
-                                            .font(.system(size: 11))
-                                            .foregroundStyle(.secondary)
-                                        Spacer()
-                                        GhostTextButton(title: "Clear", icon: "trash", color: .red) {
-                                            showClearCacheAlert = true
-                                        }
-                                        .frame(width: 72)
-                                    }
-                                    .padding(.vertical, 6)
-                                }
-                            }
-                            .alert("Clear cache?", isPresented: $showClearCacheAlert) {
-                                Button("Clear", role: .destructive) {
-                                    cacheManager.clearAll()
-                                    cacheSizeText = cacheManager.cacheSizeString
-                                }
-                                Button("Cancel", role: .cancel) {}
-                            }
-
-                            // About
-                            HStack {
-                                Spacer()
-                                VStack(spacing: 6) {
-                                    Text("Rylai v1.0.2")
-                                        .font(.system(size: 11, weight: .medium))
-                                    Text("macOS Wallpaper App")
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(.tertiary)
-
-                                    GhostTextButton(title: "JaffryGao", icon: "link", color: .secondary, fontSize: 10) {
-                                        if let url = URL(string: "https://github.com/JaffryGao") {
-                                            NSWorkspace.shared.open(url)
-                                        }
-                                    }
-                                }
-                                Spacer()
-                            }
-                            .padding(.top, 8)
+                            storageSection
+                            aboutSection
                         }
                         .padding(16)
                     }
                 }
             }
         }
+        .frame(width: 360, height: 620)
         .onAppear {
             cacheSizeText = cacheManager.cacheSizeString
         }
@@ -875,6 +789,94 @@ struct InlineSettingsView: View {
                 keyVerifyState = .invalid("Network error")
             }
         }
+    }
+
+    private var storageSection: some View {
+        Group {
+            SectionHeader(title: "Storage", icon: "folder")
+
+            GlassCard {
+                VStack(spacing: 0) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Cache Dir")
+                                .font(.system(size: 11))
+                            Text("Max 50 images")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        GhostTextButton(text: "Open", icon: "folder", action: {
+                            NSWorkspace.shared.open(cacheManager.cacheDirectory)
+                        })
+                        .frame(width: 84)
+                    }
+                    .padding(.vertical, 6)
+
+                    GlassDivider()
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Favorites Dir")
+                                .font(.system(size: 11))
+                        }
+                        Spacer()
+                        GhostTextButton(text: "Open", icon: "folder", action: {
+                            NSWorkspace.shared.open(cacheManager.favoritesDirectory)
+                        })
+                        .frame(width: 84)
+                    }
+                    .padding(.vertical, 6)
+
+                    GlassDivider()
+
+                    HStack {
+                        Text("Cache \(cacheSizeText)")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        GhostTextButton(text: "Clear", icon: "trash", color: Color.red, action: {
+                            showClearCacheAlert = true
+                        })
+                        .frame(width: 84)
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+            .alert(isPresented: $showClearCacheAlert) {
+                Alert(
+                    title: Text("Clear cache?"),
+                    message: Text("This removes cached wallpapers and favorites stored locally."),
+                    primaryButton: .destructive(Text("Clear")) {
+                        cacheManager.clearAll()
+                        cacheSizeText = cacheManager.cacheSizeString
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+        }
+    }
+
+    private var aboutSection: some View {
+        VStack(spacing: 6) {
+            Text("Rylai v1.0.2")
+                .font(.system(size: 11, weight: .medium))
+            Text("macOS Wallpaper App")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+            GhostTextButton(text: "Original: JaffryGao", icon: "link", color: .secondary, fontSize: 10, action: {
+                if let url = URL(string: "https://github.com/JaffryGao") {
+                    NSWorkspace.shared.open(url)
+                }
+            })
+            GhostTextButton(text: "Fork: regstudy", icon: "link", color: .secondary, fontSize: 10, action: {
+                if let url = URL(string: "https://github.com/regstudy/Rylai") {
+                    NSWorkspace.shared.open(url)
+                }
+            })
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
     }
 }
 
@@ -1014,7 +1016,7 @@ struct CategoryEditorPage: View {
         }
         .frame(width: 360, height: 620)
         .alert("Select at least \(minSelectable) category", isPresented: $showingMinError) {
-            Button("OK", role: .cancel) {}
+            Button("OK") {}
         } message: {
             Text("Home page requires at least \(minSelectable) category to function")
         }
@@ -1174,5 +1176,51 @@ struct CategorySelectionRow: View {
             }
         }
         .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isSelected)
+    }
+}
+
+struct HomeCategoryChip: View {
+    let category: WallpaperCategory
+    let isSelected: Bool
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Text(category.emoji)
+                    .font(.system(size: 18))
+                    .scaleEffect(isHovered ? 1.05 : 1.0)
+                    .animation(.easeInOut(duration: 0.15), value: isHovered)
+
+                Text(category.displayName)
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(isSelected ? .primary : category.accentColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity, minHeight: 54)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 8)
+            .background {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(
+                        isSelected
+                            ? category.accentColor.opacity(0.18)
+                            : category.accentColor.opacity(0.08)
+                    )
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(category.accentColor.opacity(isSelected ? 0.55 : 0.28), lineWidth: isSelected ? 1.2 : 0.8)
+            }
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .pointerCursor()
     }
 }

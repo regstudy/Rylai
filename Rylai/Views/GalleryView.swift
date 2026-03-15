@@ -31,8 +31,8 @@ struct GalleryView: View {
                         LiquidButton(
                             title: tab.rawValue,
                             icon: tab.icon,
-                            action: { selectedTab = tab },
-                            isActive: selectedTab == tab
+                            isActive: selectedTab == tab,
+                            action: { selectedTab = tab }
                         )
                     }
                     Spacer()
